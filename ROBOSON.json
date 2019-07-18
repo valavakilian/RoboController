@@ -1,5 +1,7 @@
 {
-    "line_finder": {"binary_cut" : 50, "resolution": [640, 480], "kernel" : [[0,1,0],[0,1,0],[0,1,0]]}, 
-    "pid": {"total" : 8, "pro" : 2, "der" : 1}
+    "line_finder": {"binary_cut" : 50, "resolution": [40, 32], "kernel" : [[0,1,0],[0,1,0],[0,1,0]], "line_width" : }, 
+    "pid": {"total" : 8, "pro" : 2, "der" : 1},
+    "speed" : {"base" : 150, "max" : 255, "min" : -40}
+    
 
 }
