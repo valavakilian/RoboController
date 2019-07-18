@@ -20,6 +20,8 @@ from imutils.video import FPS
 import argparse
 import imutils
 import time
+from RoboLoader import RoboLoader
+
 '''
 Kernel_size = 15
 low_threshold = 40
@@ -33,6 +35,8 @@ maxLineLength = 1
 '''
 #cap = cv2.VideoCapture(0)
 #ret, frame = cap.read()
+robot = RoboLoader('ROBOSON.json')
+
 
 with open('LineWidth.txt') as f:
     black_line_width = int(f.readline())
@@ -41,11 +45,11 @@ with open('LineWidth.txt') as f:
 currentDeltaX = 0
 previousDeltaX = 0
 
-baseSpeed = 150
-maxSpeed = 255
-minSpeed = -100
+baseSpeed = robot.speed.base
+maxSpeed = robot.speed.max
+minSpeed = robot.speed.min
 
-BIN_CUT = 50
+BIN_CUT = robot.line_finder.binary_cut
 
 ser = serial.Serial("/dev/ttyUSB0", 9600)
 ser.flushInput()
