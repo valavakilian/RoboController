@@ -1,0 +1,5 @@
+{
+    "line_finder": {"binary_cut" : 50, "resolution": [640, 480], "kernel" : [[0,1,0],[0,1,0],[0,1,0]]}, 
+    "pid": {"total" : 8, "pro" : 2, "der" : 1}
+
+}
