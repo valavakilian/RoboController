@@ -11,4 +11,4 @@ def loadRobot(filename = 'ROBOSON.json'):
 
 def dumpRobot(robot, filename):
     with open(filename, 'w') as f:
-    json.dump(robot, f)
+        json.dump(robot, f)
