@@ -1,27 +1,15 @@
 # Import libraries
-import sys
 import time
-import io
 import cv2
 import numpy as np
-import os
-import stat
 import serial
 import csv
 from picamera.array import PiRGBArray
 from picamera import PiCamera
 from numpy import diff
-from imutils.video import VideoStream
-from imutils.video import FPS
-import argparse
-import imutils
 import time
 from RoboLoader import RoboLoader
 import statistics
-
-
-def get_Float(filename):
-    return float(filename.readline())
 
 
 def Follow_Line(testMode = False):
@@ -271,38 +259,36 @@ def Follow_Line(testMode = False):
 	    print("Byte array sent to the BluePill: ",serialByteArray)
 	    ser.write(serialByteArray)
 	    serialByteArray = []
-	    
-	    #print(output)
-	    #print(duty_cycle)
-	    #ser.write(output)
-	    #while ser.in_waiting:
-	        #print("read")
-	        #ser.readline(1)
-
-	    
+	   
 	    serialTime = time.time()
-	    #print("serial time: ", serialTime - forLoopTime)
+	    print("serial time: ", serialTime - calcTime)
 	    
-	    key = cv2.waitKey(1) #& 0xFF
-	    #print("key" + str(key))
+
+	    # Loop is now complete
+	    key = cv2.waitKey(1)
 
 	    # if the `q` key was pressed, break from the loop
 	    if key == "q":
 	        break
-	    
-	    #print("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-	    endTime = time.time()
-	    print("Full time: ", endTime - firstTime)
+	   	
+	    algorithmEndTime = time.time()
+	    print("Full algorithm time: ", algorithmStartTime - algorithmEndTime)
 
-	    frameEndTime = time.time()
-	    cv2.imshow("Original_frame", frame)
-	    #cv2.imshow("gray_frame", gray)
-	    #cv2.imshow("blur",blur)
-	    cv2.imshow("binary", binary)
+	    # Showing the frame in test mode only 
+	    if testMode:
+		    cv2.imshow("Original_frame", frame)
+		    cv2.imshow("binary", binary)
 
 	    # Truncating reqiured for the frames
 	    rawCapture.truncate(0)
+	
+
+	# close all windows
+	cv2.destroyAllWindows()
+
+	return True
 
 
 
 
+Follow_Line(True)
