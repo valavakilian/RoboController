@@ -20,7 +20,7 @@ from imutils.video import FPS
 import argparse
 import imutils
 import time
-from RoboLoader import RoboLoader
+from RoboLoader import loadRobot
 
 '''
 Kernel_size = 15
@@ -35,7 +35,7 @@ maxLineLength = 1
 '''
 #cap = cv2.VideoCapture(0)
 #ret, frame = cap.read()
-robot = RoboLoader('ROBOSON.json')
+robot = loadRobot('ROBOSON.json')
 
 
 with open('LineWidth.txt') as f:
@@ -154,6 +154,13 @@ for frame in camera.capture_continuous(rawCapture, format = "bgr", use_video_por
         
         
         if (len(top_indices) >= 2):
+
+            if(len(top_indices) == 4):
+                center1 = (top_indices[0] + top_indices[1])/2
+                center2 = (top_indices[2] + top_indices[3])/2
+                cv2.circle(frame, (int(center1), lineY), 2, (255,0,0))
+                cv2.circle(frame, (int(center2), lineY), 2, (255,0,0))
+                
             leftmostEdge = top_indices[0]
             rightmostEdge = top_indices[-1]
             #print("line width",leftmostEdge - rightmostEdge) 
