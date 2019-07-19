@@ -1,0 +1,308 @@
+# Import libraries
+import sys
+import time
+import io
+import cv2
+import numpy as np
+import os
+import stat
+import serial
+import csv
+from picamera.array import PiRGBArray
+from picamera import PiCamera
+from numpy import diff
+from imutils.video import VideoStream
+from imutils.video import FPS
+import argparse
+import imutils
+import time
+from RoboLoader import RoboLoader
+import statistics
+
+
+def get_Float(filename):
+    return float(filename.readline())
+
+
+def Follow_Line(testMode = False):
+
+	# Leading Robot as an object
+	# Reads variables from the file
+	robot = RoboLoader('ROBOSON.json')
+
+
+	# Adjusting Robot variables
+	baseSpeed = robot.speed.base
+	maxSpeed = robot.speed.max
+	minSpeed = robot.speed.min
+
+
+	# Value used for the binary filter
+	BIN_CUT = robot.line_finder.binary_cut
+
+
+	# Loading PID values
+	MultiCoefficient = robot.pid.total
+    PCoefficient = robot.pid.pro
+    DCoefficient = robot.pid.dir
+
+
+   	camera = PiCamera()
+   	camera.color_effects = (128, 128)
+   	cameraResolution = robot.resolution
+	camera.resolution = (cameraResolution[0], cameraResolution[0])
+	rawCapture = PiRGBArray(camera, size = (40, 32))
+
+
+	# Check serial port issues
+	try: 
+		ser = serial.Serial("/dev/ttyUSB0", 9600)
+		ser.flushInput()
+		serialByteArray = []
+	except serial.SerialException: 
+  		return False
+	
+
+  	# Changinig the mode to showing the frames or not 
+  	if testMode:
+  		cv2.namedWindow("Original_frame", cv2.WINDOW_NORMAL)
+		cv2.namedWindow("binary", cv2.WINDOW_NORMAL)
+		cv2.resizeWindow("binary" , 100,100)
+		cv2.resizeWindow("Original_frame", 100,100)
+
+	# Reads width of the line from the file
+	with open('LineWidth.txt') as f:
+	    black_line_width = int(f.readline())
+
+	# Kernel setup
+	n = 3
+	kernel = np.array([[0,1/n,0]*n])
+
+
+	# Camera initialization and start
+	camera.capture(rawCapture, format = 'bgr')
+	frame = rawCapture.array[:, :, 0]
+	rawCapture.truncate(0)
+
+	# Retrieving the height and the with of the frame
+	height = len(frame)
+	width = len(frame[0])
+
+	# Sensor lines used for the line follower 
+	# You could change the distances
+	linesY = np.linspace(int(2 * height / 3),height - 10, 5, dtype = int)
+
+	rawCapture.truncate(0)
+
+	# List of errors and times for PID plots
+	errorList = []
+	timeList = []
+
+	# Initializing distances
+	currentDeltaX = 0
+	previousDeltaX = 0
+
+	# Initializing times
+	currentTime = time.time()
+	frameEndTime = time.time()
+	frameStartTime = time.time()
+
+
+	# main for loop starting 
+	# Frame is taken as a 3 channgel grayscaled image
+	for frame in camera.capture_continuous(rawCapture, format = "bgr", use_video_port = True):
+	    
+		# Algorithm start time
+		algorithmStartTime = time.time()
+
+		# Sample frame taken time
+		frameStartTime = time.time()
+		frameTakingTime = frameStartTime - frameEndTime
+		print("Frame taking time:", frameTakingTime)
+
+		# Appending time to list
+		timeList.append(frameStartTime)
+
+		# Assignet previous delta X used for the derivative 
+    	previousDeltaX = currentDeltaX
+
+
+    	frameArray = frame.array
+    	# Creating a grayscale copy of the frame by taking only one of the channels
+    	# and only including the lines indicated for the line follwoing algorithm
+    	# This step is included to reduce the computer time 
+    	frameCopy = frame.copy()[linesY][:, :, 0]
+    	frameCopyTime = time.time()
+    	print("transform time", frameCopyTime - algorithmStartTime)
+
+    	# Taking the kernel of the image
+    	kerneledImage = cv2.filter2D(frameCopy, -1, kernel)
+    	kernelTime = time.time()
+    	print("kernel time: ",kernelTime-grayTime)
+
+    	# Blurring the image
+    	blurredImage = cv2.GaussianBlur(kerneledImage,(5,5),0)
+	    blurTime = time.time()
+	    print("blur time: ",blurTime-kernelTime)
+
+	    # Binary filter for the image
+	    ret, binaryImage = cv2.threshold(kerneledImage, BIN_CUT, 255, cv2.THRESH_BINARY) 
+	    binTime = time.time()
+	    print("bin time: ",binTime-blurTime)
+
+	    # Creating the matrix 
+	    pathMatrix = binaryImage
+
+	    # Median center value
+	    # This value is a cumulative results from all the lines of sensors
+	    currentDeltaX = 0
+
+	    # list of deltaXs
+	    # A list of the deltaXs indicated by each line
+	    deltaXList = []
+
+
+	    # A loop for the calculations for each line of the sensors
+    	for line_index in range(0, len(linesY)):
+	        lineY = linesY[line_index]
+	        line = pathMatrix[line_index]
+
+	        # taking the derivative of the lines
+	        dline = diff(line)
+
+	        # Here we can either choose the two heighest points
+	        # or we could simple trust that there will only be 2 values
+	        # This will indicate the two edges of the line
+	        #top_two_indices = sorted(range(len(dline)), key = lambda i: dline[i])[-2:]
+	        edgeIndices = [ i for i in range(0, len(dline)) if dline[i] != 0] 
+			
+			# Case for when two or more edges are detected 	       
+	        if (len(edgeIndices) >= 2):
+	            leftmostEdge = edgeIndices[0]
+	            rightmostEdge = edgeIndices[-1]
+
+	            # lineWidthDetected = leftmostEdge - rightmostEdge 
+	            #print("Line width detected: ",lineWidthDetected) 
+
+	            # Finding the denter of the line
+	            lineCenterX = int((leftmostEdge + rightmostEdge) / 2)
+
+	            # Draw circle for showing
+	            # cv2.circle(frame, (centerX, lineY), 2, (255,0,0), -1)
+
+	            thisLineDeltaX = centerX - width / 2
+	            deltaXList.append(thisLineDeltaX)
+
+	        # Case for when only one edge is detected
+	        elif(len(edgeIndices) == 1):
+	            onlyEdge = top_indices[0]
+
+	            # Cases for when the edge is to the left or the right
+	            if( onlyEdge >= width / 2):
+	                centerX = onlyEdge + black_line_width / 2
+	            if( onlyEdge < width / 2):
+	                centerX = onlyEdge - black_line_width / 2
+	            thisLineDeltaX = centerX - width / 2
+	            deltaXList.append(thisLineDeltaX)
+
+	        # Case for when we are offline 
+	        # We will exponentially increase the delta values to return the line
+	        else:
+	            thisLineDeltaX = 1.4 * (abs(previousDeltaX)) * (-1 if previousDeltaX < 0 else 1)
+	            deltaXList.append(thisLineDeltaX)
+
+		# Takingn the median of the delta Xs
+		currentDeltaX  = statistics.median(items)
+		print("Delta X measured: ", currentDeltaX)
+
+	    forLoopTime = time.time()
+	    print("for loop time: ", forLoopTime - binTime)
+
+
+	    #
+	    # PID calculations
+	    #
+
+	    # Finding the derivative time 
+	    # The time it took from taking the last frame 
+	    derivativeDeltaTime = frameTakingTime + (forLoopTime - algorithmStartTime)
+
+	   	# finding the derivative
+	    dXdT = (currentDeltaX - previousDeltaX) / derivativeDeltaTime
+
+	    # Finding the error value given the constants
+	    error_value = int(MultiCoefficient * (DCoefficient * dXdT + PCoefficient * currentDeltaX))
+
+	    duty_cycle_left = baseSpeed + error_value
+    	duty_cycle_right = baseSpeed - error_value
+
+
+    	# Reassigning the duty cycle values based on the cutoffs
+    	# Left Wheel
+        if duty_cycle_left > maxSpeed:
+        	duty_cycle_left = maxSpeed
+	    elif duty_cycle_left < minSpeed:
+	        duty_cycle_left = minSpeed
+
+	    # Right wheel
+	    if duty_cycle_right > maxSpeed:
+	        duty_cycle_right = maxSpeed
+	    elif duty_cycle_right < minSpeed:
+	        duty_cycle_right = minSpeed
+
+	    calcTime = time.time()
+    	print("Calculation time: ", calcTime - forLoopTime)
+
+
+    	# Serial communication to the BluePill
+
+	    serialByteArray.append(abs(duty_cycle_left))
+	    if(duty_cycle_left > 0):
+	        serialByteArray.append(1)
+	    else:
+	        serialByteArray.append(0)
+	    
+	    serialByteArray.append(abs(duty_cycle_right))
+	    if(duty_cycle_right > 0):
+	        serialByteArray.append(1)
+	    else:
+	        serialByteArray.append(0)
+	    
+	    print("Byte array sent to the BluePill: ",serialByteArray)
+	    ser.write(serialByteArray)
+	    serialByteArray = []
+	    
+	    #print(output)
+	    #print(duty_cycle)
+	    #ser.write(output)
+	    #while ser.in_waiting:
+	        #print("read")
+	        #ser.readline(1)
+
+	    
+	    serialTime = time.time()
+	    #print("serial time: ", serialTime - forLoopTime)
+	    
+	    key = cv2.waitKey(1) #& 0xFF
+	    #print("key" + str(key))
+
+	    # if the `q` key was pressed, break from the loop
+	    if key == "q":
+	        break
+	    
+	    #print("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+	    endTime = time.time()
+	    print("Full time: ", endTime - firstTime)
+
+	    frameEndTime = time.time()
+	    cv2.imshow("Original_frame", frame)
+	    #cv2.imshow("gray_frame", gray)
+	    #cv2.imshow("blur",blur)
+	    cv2.imshow("binary", binary)
+
+	    # Truncating reqiured for the frames
+	    rawCapture.truncate(0)
+
+
+
+

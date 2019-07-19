@@ -57,9 +57,6 @@ ser.flushInput()
 
 byteArray = []
 
-#ser.write(bytes ([BPmin]))
-#ser.write(bytes ([BPmax]))
-
 cv2.namedWindow("Original_frame", cv2.WINDOW_NORMAL)
 cv2.namedWindow("binary", cv2.WINDOW_NORMAL)
 cv2.resizeWindow("binary" , 100,100)
@@ -74,13 +71,12 @@ with open('coeff.txt') as f:
     PCoefficient = getfloat(f)
     DCoefficient = getfloat(f)
 
-adjustment = 0
 
 
 camera = PiCamera()
 camera.color_effects = (128, 128)
 camera.resolution = (40, 32)
-#camera.framerate = 32
+
 rawCapture = PiRGBArray(camera, size = (40, 32))
 
 
@@ -143,6 +139,7 @@ for frame in camera.capture_continuous(rawCapture, format = "bgr", use_video_por
     #print(kerneled_image[-1])
     pathMatrix = binary
     line_index = 0
+
     
     
     for line_index in range(0, len(linesY)):
@@ -182,7 +179,7 @@ for frame in camera.capture_continuous(rawCapture, format = "bgr", use_video_por
 
     currentTime = time.time()
     deltaTime = currentTime - previousTime
-    dXdT = (currentDeltaX - previousDeltaX) /deltaTime
+    dXdT = (currentDeltaX - previousDeltaX) / deltaTime
     #print(currentDeltaX)
     
     
