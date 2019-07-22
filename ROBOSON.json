@@ -7,5 +7,7 @@
     "wheel_diameter": 10.6,
     "rotation_rpm": 100,
     "pole_contact_pin": 16,
-    "pole_contact_speed": 90
+    "pole_contact_dutycycle": 90,
+    "start_pickup_stone_pin": 0,
+    "pickup_stone_complete_pin": 0
 }

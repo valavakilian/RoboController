@@ -10,6 +10,7 @@ from numpy import diff
 import time
 from RoboLoader import loadRobot
 import RPi.GPIO as GPIO
+import serial
 
 
 
@@ -80,9 +81,11 @@ def Contact_Pole(angle = 0):
 	    except serial.SerialException:
 	        return False
     	
+    	# Finiding the on time for the motors and returning them
     	timePeriod = motorEndTime - motorStartTime
 	    return timePeriod
 
     else:
     	return 0
+
     
