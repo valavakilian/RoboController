@@ -12,9 +12,12 @@ from RoboLoader import loadRobot
 import statistics
 
 
-def Follow_Line(testMode = False):
+"""
+Function defenition
+"""
+def Follow_Line(testMode = False, intersectionQueue = []):
 
-    # Leading Robot as an object
+    # Leoding Robot as an object
     # Reads variables from the file
     robot = loadRobot('ROBOSON.json')
 
@@ -42,12 +45,14 @@ def Follow_Line(testMode = False):
 
 
     # Check serial port issues
+    # if there is no serial connection, this function
+    # simply returned the untouched queue
     try: 
         ser = serial.Serial("/dev/ttyUSB0", 9600)
         ser.flushInput()
         serialByteArray = []
     except serial.SerialException: 
-        return False
+        return intersectionQueue
     
 
     # Changinig the mode to showing the frames or not 
@@ -99,10 +104,22 @@ def Follow_Line(testMode = False):
     frameStartTime = time.time()
 
 
-    # main for loop starting 
+    # A parameter indicating wether the line 
+    # following must end or continue
+    lineFollowingEnded = False 
+
+
+    # There are two ways to exit this main loop
+    # 1) The serial connection is lost
+    # 2) queue of the turns has reached character "X"
+
+
+    # Main for loop starting 
     # Frame is taken as a 3 channgel grayscaled image
     for frame in camera.capture_continuous(rawCapture, format = "bgr", use_video_port = True):
-        
+
+
+
         # Algorithm start time
         algorithmStartTime = time.time()
 
@@ -175,15 +192,29 @@ def Follow_Line(testMode = False):
                 lineWidthDetected = rightmostEdge - leftmostEdge
                 print("Line width detected: ",lineWidthDetected) 
 
+                # Checking to see if a for is detected 
+                if (lineWidthDetected >= fork_min_width):
 
-                # Finding the denter of the line
-                lineCenterX = int((leftmostEdge + rightmostEdge) / 2)
+                    direction = intersectionQueue.pop(0)
+                    if(direction == "L"):
+                        thisLineDeltaX = leftmostEdge - width / 2
+                    elif(direction == "R"):
+                        thisLineDeltaX = rightmostEdge - width / 2
+                    elif(direction == "X"):
+                        return intersectionQueue
 
-                # Draw circle for showing
-                # cv2.circle(frame, (lineCenterX, lineY), 2, (255,0,0), -1)
 
-                thisLineDeltaX = lineCenterX - width / 2
-                deltaXList.append(thisLineDeltaX)
+
+
+                else:
+                    # Finding the denter of the line
+                    lineCenterX = int((leftmostEdge + rightmostEdge) / 2)
+
+                    # Draw circle for showing
+                    # cv2.circle(frame, (lineCenterX, lineY), 2, (255,0,0), -1)
+
+                    thisLineDeltaX = lineCenterX - width / 2
+                    deltaXList.append(thisLineDeltaX)
 
             # Case for when only one edge is detected
             elif(len(edgeIndices) == 1):
@@ -247,7 +278,6 @@ def Follow_Line(testMode = False):
 
 
         # Serial communication to the BluePill
-
         serialByteArray.append(abs(duty_cycle_left))
         if(duty_cycle_left > 0):
             serialByteArray.append(1)
@@ -261,11 +291,14 @@ def Follow_Line(testMode = False):
             serialByteArray.append(0)
         
         print("Byte array sent to the BluePill: ",serialByteArray)
+        
+        # This try cathc block will return the unfinished
+        # queue in case the serial communication is lost in the middle
         try:
             ser.write(serialByteArray)
             serialByteArray = []
         except serial.SerialException: 
-            return False
+            return intersectionQueue
         
        
         serialTime = time.time()
@@ -301,5 +334,5 @@ def Follow_Line(testMode = False):
 
 
 
-val = Follow_Line(True)
+val = Follow_Line(True, [])
 print(val)
