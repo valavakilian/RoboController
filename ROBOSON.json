@@ -6,5 +6,6 @@
     "wheel_to_wheel_distance": 35 ,
     "wheel_diameter": 10.6,
     "rotation_rpm": 100,
-    "":
+    "pole_contact_pin": 16,
+    "pole_contact_speed": 90
 }
