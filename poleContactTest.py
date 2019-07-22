@@ -14,8 +14,7 @@ import serial
 
 
 
-
-def Contact_Pole(angle = 0):
+def Contact_Pole():
 	
 	# Loading Robot as an object
     # Reads variables from the file
