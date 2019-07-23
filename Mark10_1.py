@@ -15,11 +15,7 @@ import statistics
 """
 Function defenition
 """
-def Follow_Line(testMode = False, intersectionQueue = []):
-
-    # Leoding Robot as an object
-    # Reads variables from the file
-    robot = loadRobot('ROBOSON.json')
+def Follow_Line(testMode = False, intersectionQueue = [], robot = loadRobot('ROBOSON.json')):
 
 
     # Adjusting Robot variables
@@ -91,8 +87,9 @@ def Follow_Line(testMode = False, intersectionQueue = []):
     rawCapture.truncate(0)
 
     # List of errors and times for PID plots
-    errorList = []
-    timeList = []
+    if testMode:
+        errorList = []
+        timeList = []
 
     # Initializing distances
     currentDeltaX = 0
@@ -239,7 +236,7 @@ def Follow_Line(testMode = False, intersectionQueue = []):
                     thisLineDeltaX = 1.4 * (abs(previousDeltaX)) * (-1 if previousDeltaX < 0 else 1)
                     deltaXList.append(thisLineDeltaX)
 
-            if(numberOfLinesDetectingIntersection >= numberOfLinesRequiredForIntersectionMode):
+            if (numberOfLinesDetectingIntersection >= numberOfLinesRequiredForIntersectionMode):
                 intersectionMode = True
                 intersectionDirection = intersectionQueue.pop(0)
 

@@ -14,7 +14,7 @@ import statistics
 
 def Follow_Line(testMode = False):
 
-    # Leading Robot as an object
+    # Loading Robot as an object
     # Reads variables from the file
     robot = loadRobot('ROBOSON.json')
 
