@@ -21,6 +21,7 @@ def Follow_Line(testMode = False, intersectionQueue = [], robot = loadRobot('ROB
     baseSpeed = robot.speed.base
     maxSpeed = robot.speed.max
     minSpeed = robot.speed.min
+    numberOfLinesRequiredForIntersectionMode = robot.number_of_lines_required_for_inersection_mode
 
 
     # Value used for the binary filter
@@ -43,7 +44,7 @@ def Follow_Line(testMode = False, intersectionQueue = [], robot = loadRobot('ROB
     # if there is no serial connection, this function
     # simply returned the untouched queue
     try: 
-        ser = serial.Serial("/dev/ttyUSB0", 9600)
+        ser = serial.Serial("/dev/ttyS0", 9600)
         ser.flushInput()
         serialByteArray = []
     except serial.SerialException: 
@@ -240,7 +241,7 @@ def Follow_Line(testMode = False, intersectionQueue = [], robot = loadRobot('ROB
 
             if (numberOfLinesDetectingIntersection >= numberOfLinesRequiredForIntersectionMode):
                 intersectionMode = True
-                intersectionDirection = intersectionQueue.pop(0)
+                intersectionDirection = intersectionQueue[0]
 
 
         if intersectionMode:

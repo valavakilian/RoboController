@@ -43,7 +43,7 @@ def Follow_Line(testMode = False):
 
     # Check serial port issues
     try: 
-        ser = serial.Serial("/dev/ttyUSB0", 9600)
+        ser = serial.Serial("/dev/ttyS0", 9600)
         ser.flushInput()
         serialByteArray = []
     except serial.SerialException: 

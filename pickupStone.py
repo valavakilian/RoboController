@@ -8,41 +8,45 @@ from RoboLoader import loadRobot
 import RPi.GPIO as GPIO
 
 
-def pickup_stone():
+def pickup_stone(robot):
 
-	# Loading Robot as an object
+    # Loading Robot as an object
     # Reads variables from the file
-    robot = loadRobot('ROBOSON.json')
-   	startStonePickupPin = robot.start_pickup_stone_pin
-    pickupStoneCompletePin = robot.pickup_stone_complete_pin
-    bluepillSafetyPin = robot.bluepill_safety_pin
+    startStonePickupPin = robot.start_pickup_stone_pin
+    pickupStoneCompletePin = robot.objective_complete_pin
+    dispenseStonePin = robot.dispense_stone_pin
 
     # Setting the contact pole pin as a input pin
     GPIO.setmode(GPIO.BCM)
-	GPIO.setup(startStonePickupPin, GPIO.OUT)
-	GPIO.setup(bluepillSafetyPin, GPIO.OUT)
-	GPIO.setup(pickupStoneCompletePin, GPIO.IN)
+    GPIO.setup(startStonePickupPin, GPIO.OUT)
+    GPIO.setup(dispenseStonePin, GPIO.OUT)
+    GPIO.setup(pickupStoneCompletePin, GPIO.IN)
+    
+    
 
-    # This is a safety pin to ensure the bluepill only does action if this pin is turned on
-    GPIO.ouput(bluepillSafetyPin, 1)
+    # Bluepill starts the pickup stone process as this pin turns high
+    # Only needs to be high for a second
+    GPIO.output(startStonePickupPin, GPIO.LOW)
+    GPIO.output(dispenseStonePin, GPIO.LOW)
+    GPIO.output(startStonePickupPin, GPIO.HIGH)
+    print("Pin on")
+    time.sleep(1)
+    GPIO.output(startStonePickupPin, GPIO.LOW)
+    #GPIO.output(dispenseStonePin, GPIO.LOW)
 
-	# Bluepill starts the pickup stone process as this pin turns high
-	# Only needs to be high for a second
-	GPIO.ouput(poleContactPin, 1)
-	time.sleep(0.1)
-	GPIO.ouput(poleContactPin, 0)
+    # Wait for the proper pin to be turned on by the bluepill
+    # indicating that the stone pickup is complete
+    stonePickupState = GPIO.input(startStonePickupPin)
+    while(stonePickupState is 1):
+        print(stonePickupState)
+        #GPIO.output(dispenseStonePin, GPIO.LOW)
+        stonePickupState = GPIO.input(startStonePickupPin)
+    
+    # Cleaning the GPIO pins is required
+    GPIO.cleanup()
 
-	# Wait for the proper pin to be turned on by the bluepill
-	# indicating that the stone pickup is complete
-	stonePickupState = GPIO.input(startStonePickupPin)
-	while(not stonePickupState):
-		stonePickupState = GPIO.input(startStonePickupPin)
-
-
-	# Now the program is complete, we can turn the safety pin off and exit
-	GPIO.ouput(bluepillSafetyPin, 0)
-
-	return True
+    return True
 
 
-
+robot = loadRobot('ROBOSON.json')
+pickup_stone(robot)
