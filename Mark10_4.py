@@ -31,7 +31,6 @@ def Follow_Line(testMode = False, intersectionQueue = [], robot = loadRobot('ROB
     MultiCoefficient = robot.pid.total
     PCoefficient = robot.pid.pro
     DCoefficient = robot.pid.der
-    offlineExponential = robot.pid.off_line
 
 
     camera = PiCamera()
@@ -82,7 +81,7 @@ def Follow_Line(testMode = False, intersectionQueue = [], robot = loadRobot('ROB
 
     # Sensor lines used for the line follower 
     # You could change the distances
-    linesY = np.linspace(2 / 3 * height - 5, height - 10 , 5, dtype = int)#np.linspace(20, height-5, 5, dtype = int)#
+    linesY = np.linspace(5, height - 5  , 10, dtype = int)#np.linspace(20, height-5, 5, dtype = int)#
 
     # Required by the camera function to runcate every time
     rawCapture.truncate(0)
@@ -137,13 +136,14 @@ def Follow_Line(testMode = False, intersectionQueue = [], robot = loadRobot('ROB
         # Creating a grayscale copy of the frame by taking only one of the channels
         # and only including the lines indicated for the line follwoing algorithm
         # This step is included to reduce the computer time 
-        frameCopy = frameArray.copy()[linesY]
-        frameCopyTime = time.time()
+        frameCopy = frameArray.copy()[linesY][:, :, 0]
+        #frameCopyTime = time.time()
         #print("transform time", frameCopyTime - algorithmStartTime)
 
         # Taking the kernel of the image
-        kerneledImage = cv2.filter2D(frameCopy, -1, kernel)[:, :, 0]
+        kerneledImage = cv2.filter2D(frameCopy, -1, kernel)
         kernelTime = time.time()
+        #kerneledImage = frameCopy 
         #print("kernel time: ",kernelTime-frameCopyTime)
 
         # Blurring the image
@@ -200,13 +200,13 @@ def Follow_Line(testMode = False, intersectionQueue = [], robot = loadRobot('ROB
                     rightmostEdge = edgeIndices[-1]
 
                     lineWidthDetected = rightmostEdge - leftmostEdge
-                    #print("Line width detected: ",lineWidthDetected)
-                    #print(len(edgeIndices))
-                    #print("_______________________________________________")
+                    print("Line width detected: ",lineWidthDetected)
+                    print(len(edgeIndices))
+                    print("_______________________________________________")
                     
                     
                     # Checking to see if a for is detected 
-                    if (lineWidthDetected >= fork_min_width and len(edgeIndices) >= 4):
+                    if (lineWidthDetected >= fork_min_width and len(edgeIndices) >= 3):
 
                         intersectionDirection = intersectionQueue[0]
                         numberOfLinesDetectingIntersection += 1
@@ -248,19 +248,22 @@ def Follow_Line(testMode = False, intersectionQueue = [], robot = loadRobot('ROB
                 # Case for when we are offline 
                 # We will exponentially increase the delta values to return the line
                 else:
-                    thisLineDeltaX = offlineExponential * (abs(previousDeltaX)) * (-1 if previousDeltaX < 0 else 1)
+                    thisLineDeltaX = 1.4 * (abs(previousDeltaX)) * (-1 if previousDeltaX < 0 else 1)
                     deltaXList.append(thisLineDeltaX)
 
             if (numberOfLinesDetectingIntersection >= numberOfLinesRequiredForIntersectionMode):
                 intersectionMode = True
-                intersectionDirection = intersectionQueue.pop(0)
+                intersectionDirection = intersectionQueue[0]
                 intersectionStartTime = time.time()
                 print("enter intersection mode motherfucker at ! ", time.time())
+                #ser.write([0,0,0,0])
+                #time.sleep(3)                
 
 
         if intersectionMode:
             
-             
+            ser.write([0 , 0, 0 ,0])
+            time.sleep(1)
 
             # Important !
             # Pay attention that in this loop now, the 
@@ -272,85 +275,46 @@ def Follow_Line(testMode = False, intersectionQueue = [], robot = loadRobot('ROB
             # Also note,
             # if the intersection direction indicated "X", 
             # we should have quitted the program by now 
-            # and there is no need to check 
+            # and there is no need to check
+            
+            # Loop is now complete
+            key = cv2.waitKey(1)
 
+            # if the `q` key was pressed, break from the loop
+            if key == "q":
+                break
+            
+            algorithmEndTime = time.time()
+            #print("Full algorithm time: ", algorithmEndTime - algorithmStartTime)
 
-            # A loop for the calculations for each line of the sensors
-            for line_index in range(0, len(linesY)):
-                lineY = linesY[line_index]
-                line = pathMatrix[line_index]
+            # Showing the frame in test mode only 
+            if testMode:
+                cv2.imshow("Original_frame", frameArray)
+                cv2.imshow("binary", binaryImage)
 
-                # taking the derivative of the lines
-                dline = diff(line)
-                
-                if line[0] == 0:
-                    dline[0] = 1
-                if line[-1] == 0:
-                    dline[-1] = 1
+            # Truncating reqiured for the frames
+            rawCapture.truncate(0)
 
-                # Here we can either choose the two heighest points
-                # or we could simple trust that there will only be 2 values
-                # This will indicate the two edges of the line
-                #top_two_indices = sorted(range(len(dline)), key = lambda i: dline[i])[-2:]
-                edgeIndices = [ i for i in range(0, len(dline)) if dline[i] != 0] 
-                
-                # Case for when two or more edges are detected         
-                if (len(edgeIndices) >= 2):
-                    leftmostEdge = edgeIndices[0]
-                    rightmostEdge = edgeIndices[-1]
+            
+            if(intersectionDirection == "L"):
+                ser.write([baseSpeed,1,-1 * minSpeed,0])
 
-                    lineWidthDetected = rightmostEdge - leftmostEdge
-                    #print("Line width detected: ",lineWidthDetected) 
+                continue
+            elif(intersectionDirection =="R"):
+                ser.write([-1 * minSpeed,0,baseSpeed,1])
 
-                    # Checking to see if a for is detected 
-                    if (lineWidthDetected >= fork_min_width):
-
-                        numberOfLinesDetectingIntersection += 1
-
-                        if(intersectionDirection == "L"):
-                            thisLineDeltaX = rightmostEdge - width / 2
-                        elif(intersectionDirection == "R"):
-                            thisLineDeltaX = leftmostEdge - width / 2
-                        elif(intersectionDirection == "X"):
-                            return intersectionQueue
-
-                        deltaXList.append(thisLineDeltaX)
-
-                    else:
-                        # Finding the denter of the line
-                        lineCenterX = int((leftmostEdge + rightmostEdge) / 2)
-
-                        # Draw circle for showing
-                        # cv2.circle(frame, (lineCenterX, lineY), 2, (255,0,0), -1)
-
-                        thisLineDeltaX = lineCenterX - width / 2
-                        deltaXList.append(thisLineDeltaX)
-
-                # Case for when only one edge is detected
-                elif(len(edgeIndices) == 1):
-                    
-                    if dline[0] == 0:
-                        onlyEdge = edgeIndices[-1]
-                    if dline[-1] == 0:
-                        onlyEdge = edgeIndices[0]
-
-
-                    # Cases for when the edge is to the left or the right
-                    if( onlyEdge >= width / 2):
-                        lineCenterX = onlyEdge + black_line_width / 2
-                    if( onlyEdge < width / 2):
-                        lineCenterX = onlyEdge - black_line_width / 2
-                    thisLineDeltaX = lineCenterX - width / 2
-                    deltaXList.append(thisLineDeltaX)
-
-                # Case for when we are offline 
-                # We will exponentially increase the delta values to return the line
-                else:
-                    thisLineDeltaX = offlineExponential * (abs(previousDeltaX)) * (-1 if previousDeltaX < 0 else 1)
-                    deltaXList.append(thisLineDeltaX)
-
-            if (numberOfLinesDetectingIntersection == 0 and time.time() - intersectionStartTime >= 1):
+                continue
+            else:
+                return
+            
+        
+            if(time.time() - intersectionStartTime > 0.05):
                 intersectionMode = False
+            
+    
+
+
+
 
 
         # Takingn the median of the delta Xs
@@ -453,3 +417,4 @@ def Follow_Line(testMode = False, intersectionQueue = [], robot = loadRobot('ROB
 robot = loadRobot('ROBOSON.json')
 val = Follow_Line(True, ["L","L","R","X"], robot)
 print(val)
+

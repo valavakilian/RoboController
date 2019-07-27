@@ -31,17 +31,17 @@ def updateLine(filename = 'ROBOSON.json'):
         kernel = np.array(robot.line_finder.kernel)
 
         for frame in camera.capture_continuous(rawCapture, format = "bgr", use_video_port = True):
-        frame = frame.array
-        frame_copy = frame.copy()
-        gray = cv2.cvtColor(frame_copy, cv2.COLOR_BGR2GRAY)
-        kerneled_image = cv2.filter2D(gray, -1, kernel)
-        ret, binary = cv2.threshold(kerneled_image, robot.line_finder.binary_cut, 255, cv2.THRESH_BINARY)
-        captureBin = binary
-        capture = frame_copy
-        cv2.imshow('Binary', binary)
-        rawCapture.truncate(0)
-        if (cv2.waitKey(33)) == ord('a'):
-                break
+            frame = frame.array
+            frame_copy = frame.copy()
+            gray = cv2.cvtColor(frame_copy, cv2.COLOR_BGR2GRAY)
+            kerneled_image = cv2.filter2D(gray, -1, kernel)
+            ret, binary = cv2.threshold(kerneled_image, robot.line_finder.binary_cut, 255, cv2.THRESH_BINARY)
+            captureBin = binary
+            capture = frame_copy
+            cv2.imshow('Binary', binary)
+            rawCapture.truncate(0)
+            if (cv2.waitKey(33)) == ord('a'):
+                    break
         
         
         
