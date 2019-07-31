@@ -1,7 +1,7 @@
 {
     "line_finder": {"binary_cut" : 90, "resolution" : [40, 32], "kernel" : [[0,1,0],[0,1,0],[0,1,0]], "line_width" : 8 }, 
-    "pid": {"total" : 1, "pro" :4.5, "der" : 0.99, "off_line" : 1.5},
-    "speed" : {"base" : 130, "max" : 255, "min" : -140},
+    "pid": {"total" : 1, "pro" :4.5, "der" : 0.99, "off_line" : 1.1},
+    "speed" : {"base" : 150, "max" : 200, "min" : -100},
     "fork_black_line_min_width_multiplier": 1.8,
     "wheel_to_wheel_distance": 35 ,
     "wheel_diameter": 10.6,

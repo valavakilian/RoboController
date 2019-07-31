@@ -250,15 +250,19 @@ def Follow_Line(testMode = False, intersectionQueue = [], robot = loadRobot('ROB
                 else:
                     thisLineDeltaX = offlineExponential * (abs(previousDeltaX)) * (-1 if previousDeltaX < 0 else 1)
                     deltaXList.append(thisLineDeltaX)
-
+                    
+            #going into intersection mode    
             if (numberOfLinesDetectingIntersection >= numberOfLinesRequiredForIntersectionMode):
+                baseSpeed -= 30
                 intersectionMode = True
                 intersectionDirection = intersectionQueue.pop(0)
                 thisTime = time.time()
-                #while (time.time() - thisTime < 1):
-                 #   ser.write([255,0,255,0])
+                while (time.time() - thisTime < 0.01):
+                    ser.write([150,1,150,0])
+                ser.write([60,0,60,1])
+                time.sleep(0.05)
                 ser.write([0,0,0,0])
-                time.sleep(1)       
+                time.sleep(0.5)       
                 intersectionStartTime = time.time()
                 print("intersection mode timestamp", time.time())
 
