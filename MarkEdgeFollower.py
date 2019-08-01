@@ -15,10 +15,9 @@ import statistics
 """
 Function defenition
 """
-def Follow_Line(testMode = False, intersectionQueue = [],intersectionSpeeds = [], robot = loadRobot('ROBOSON.json')):
+def Follow_Line(testMode = False, intersectionQueue = [], robot = loadRobot('ROBOSON.json')):
     
     # Adjusting Robot variables
-    firstInter = True
     baseSpeed = robot.speed.base
     maxSpeed = robot.speed.max
     minSpeed = robot.speed.min
@@ -66,7 +65,6 @@ def Follow_Line(testMode = False, intersectionQueue = [],intersectionSpeeds = []
 
     # Minimum width for a fork 
     fork_min_width = robot.fork_black_line_min_width_multiplier * black_line_width
-    post_line_width = robot.post_black_line_width * black_line_width
 
     # Kernel setup
     n = 3
@@ -222,19 +220,6 @@ def Follow_Line(testMode = False, intersectionQueue = [],intersectionSpeeds = []
 
                         deltaXList.append(thisLineDeltaX)
                         
-                    elif (lineWidthDetected >= post_line_width):
-                        intersectionDirection = intersectionQueue[0]
-                        numberOfLinesDetectingIntersection += 1
-
-                        if(intersectionDirection == "L"):
-                            thisLineDeltaX = rightmostEdge - width / 2
-                        elif(intersectionDirection == "R"):
-                            thisLineDeltaX = leftmostEdge - width / 2
-                        elif(intersectionDirection == "X"):
-                            return intersectionQueue
-
-                        deltaXList.append(thisLineDeltaX)
-                     
                     else:
                         # Finding the denter of the line
                         lineCenterX = int((leftmostEdge + rightmostEdge) / 2)
@@ -265,22 +250,15 @@ def Follow_Line(testMode = False, intersectionQueue = [],intersectionSpeeds = []
                 else:
                     thisLineDeltaX = offlineExponential * (abs(previousDeltaX)) * (-1 if previousDeltaX < 0 else 1)
                     deltaXList.append(thisLineDeltaX)
-                    
-            #going into intersection mode    
+
             if (numberOfLinesDetectingIntersection >= numberOfLinesRequiredForIntersectionMode):
-                if (firstInter):
-                    baseSpeed -= 30
-                    firstInter = False
                 intersectionMode = True
                 intersectionDirection = intersectionQueue.pop(0)
-                intersectionSpeed = intersectionSpeeds.pop(0)
                 thisTime = time.time()
-                while (time.time() - thisTime < 0.01):
-                    ser.write([intersectionSpeed,1 ,intersectionSpeed,0])
-                ser.write([60,0,60,1])
-                time.sleep(0.05)
+                #while (time.time() - thisTime < 1):
+                 #   ser.write([255,0,255,0])
                 ser.write([0,0,0,0])
-                time.sleep(0.5)       
+                time.sleep(1)       
                 intersectionStartTime = time.time()
                 print("intersection mode timestamp", time.time())
 
@@ -376,7 +354,7 @@ def Follow_Line(testMode = False, intersectionQueue = [],intersectionSpeeds = []
                     thisLineDeltaX = offlineExponential * (abs(previousDeltaX)) * (-1 if previousDeltaX < 0 else 1)
                     deltaXList.append(thisLineDeltaX)
 
-            if (numberOfLinesDetectingIntersection == 0 ):#and time.time() - intersectionStartTime >= 0.3):
+            if (numberOfLinesDetectingIntersection == 0 and time.time() - intersectionStartTime >= 1):
                 print("motherfucker exiting intersection mode!")
                 intersectionMode = False
 
@@ -479,5 +457,6 @@ def Follow_Line(testMode = False, intersectionQueue = [],intersectionSpeeds = []
 # Loading Robot as an object
 # Reads variables from the file
 robot = loadRobot('ROBOSON.json')
-val = Follow_Line(True, ["L","L","R","L", "X"], [80, 50, 0, 80, 0],robot)
+val = Follow_Line(True, ["L","L","R","X"], robot)
 print(val)
+

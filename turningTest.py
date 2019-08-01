@@ -9,12 +9,14 @@ from picamera import PiCamera
 from numpy import diff
 import time
 from RoboLoader import loadRobot
+import sys
 
 
 def Rotate(angle = 0):
 
-	# Loading Robot as an object
+    # Loading Robot as an object
     # Reads variables from the file
+    angle = int(angle)
     robot = loadRobot('ROBOSON.json')
     wheelDiameter = robot.wheel_diameter / 2
     turningRadius = robot.wheel_to_wheel_distance / 2
@@ -23,7 +25,7 @@ def Rotate(angle = 0):
     rotationRPM = robot.rotation_rpm
 
     # The centimeter per second veolocity of the wheel at this rpm
-    robotRotatingVelocity = 2 * np.pi * (wheelDiameter / 2) * rpm
+    robotRotatingVelocity = 2 * np.pi * (wheelDiameter / 2) * rotationRPM
 
     # The distance the wheel travels during his rotation
     rotationDistance = np.pi * wheelDiameter * angle / 360
@@ -38,10 +40,11 @@ def Rotate(angle = 0):
 
     # calculating the duty cycle from the required rpm
     duty_cycle = RPM_to_DutyCycle(rotationRPM)
-
-
+    print(duty_cycle)
+    serialByteArray = []
     # Serial communication to the BluePills
     serialByteArray.append(abs(duty_cycle))
+    
     if(angle > 0):
         serialByteArray.append(1)
     else:
@@ -57,10 +60,13 @@ def Rotate(angle = 0):
     # Check serial port issues
     # if the connection is not extablished, send in the angle back
     try: 
-        ser = serial.Serial("/dev/ttyUSB0", 9600)
+        ser = serial.Serial("/dev/ttyS0", 9600)
         ser.flushInput()
-        ser.write(serialByteArray)
+        startTime = time.time()
+        while(time.time() - startTime < 0.2 ):
+            ser.write(serialByteArray)
     except serial.SerialException:
+        print ("Execption")
         return False
 
     # Sleep the time period required for the full rotation
@@ -84,5 +90,8 @@ def Rotate(angle = 0):
 
 
 def RPM_to_DutyCycle(rpm):
-	dutycycle = rpm * 2
-	return dutycycle
+    dutycycle = rpm * 2
+    return dutycycle
+
+if __name__ == '__main__':
+    Rotate(sys.argv[1])

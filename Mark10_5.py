@@ -182,8 +182,8 @@ def Follow_Line(testMode = False, intersectionQueue = [], robot = loadRobot('ROB
 
 
         if not intersectionMode:
-            deltaXList = centerXs - width / 2
-            currentDeltaX = statistics.mean(deltaXList)
+            deltaXList = centerXs
+            currentDeltaX = statistics.mean(deltaXList) - width / 2
                     
 
             if (numberOfLinesDetectingIntersection >= numberOfLinesRequiredForIntersectionMode):
@@ -284,7 +284,7 @@ def Follow_Line(testMode = False, intersectionQueue = [], robot = loadRobot('ROB
         # Showing the frame in test mode only 
         if testMode:
             cv2.imshow("Original_frame", frameArray)
-            cv2.imshow("binary", binaryImage)
+            #cv2.imshow("binary", binaryImage)
 
         # Truncating reqiured for the frames
         rawCapture.truncate(0)
