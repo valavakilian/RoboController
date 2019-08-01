@@ -269,7 +269,7 @@ def Follow_Line(testMode = False, intersectionQueue = [],intersectionSpeeds = []
             #going into intersection mode    
             if (numberOfLinesDetectingIntersection >= numberOfLinesRequiredForIntersectionMode):
                 if (firstInter):
-                    baseSpeed -= 30
+                    baseSpeed = 80 
                     firstInter = False
                 intersectionMode = True
                 intersectionDirection = intersectionQueue.pop(0)
@@ -280,7 +280,7 @@ def Follow_Line(testMode = False, intersectionQueue = [],intersectionSpeeds = []
                 ser.write([60,0,60,1])
                 time.sleep(0.05)
                 ser.write([0,0,0,0])
-                time.sleep(0.5)       
+                time.sleep(0.4)       
                 intersectionStartTime = time.time()
                 print("intersection mode timestamp", time.time())
 
@@ -479,5 +479,5 @@ def Follow_Line(testMode = False, intersectionQueue = [],intersectionSpeeds = []
 # Loading Robot as an object
 # Reads variables from the file
 robot = loadRobot('ROBOSON.json')
-val = Follow_Line(True, ["L","L","R","L", "X"], [80, 50, 0, 80, 0],robot)
+val = Follow_Line(True, ["L","L","R","L", "X"], [80, 50, 0, 40, 0],robot)
 print(val)
