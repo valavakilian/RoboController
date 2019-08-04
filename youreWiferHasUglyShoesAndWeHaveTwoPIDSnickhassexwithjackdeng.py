@@ -33,6 +33,7 @@ def Follow_Line(testMode = False, intersectionQueue = [],intersectionSpeeds = []
     PCoefficient = robot.pid.pro
     DCoefficient = robot.pid.der
     offlineExponential = robot.pid.off_line
+    
 
 
     camera = PiCamera()
@@ -84,7 +85,7 @@ def Follow_Line(testMode = False, intersectionQueue = [],intersectionSpeeds = []
 
     # Sensor lines used for the line follower 
     # You could change the distances
-    linesY = np.linspace(2 / 3 * height - 5, height - 10 , 5, dtype = int)#np.linspace(20, height-5, 5, dtype = int)#
+    linesY = np.linspace(2 / 3 * height - 5, height - 10 , 10, dtype = int)#np.linspace(20, height-5, 5, dtype = int)#
 
     # Required by the camera function to runcate every time
     rawCapture.truncate(0)
@@ -275,10 +276,13 @@ def Follow_Line(testMode = False, intersectionQueue = [],intersectionSpeeds = []
             #going into intersection mode    
             if (numberOfLinesDetectingIntersection >= numberOfLinesRequiredForIntersectionMode and time.time() - lineFollowingStartTime > dontDetectIntersectionTime):
                 if (firstInter):
-                    baseSpeed -= 50
-                    #maxSpeed -= 30
-                    #minSpeed += 30
-                    #maxSpeed -= 75
+                    baseSpeed = robot.speed.second_base
+                    maxSpeed = robot.speed.second_max
+                    minSpeed = robot.speed.second_min
+                    MultiCoefficient = robot.pid.second_total
+                    PCoefficient = robot.pid.second_pro
+                    DCoefficient = robot.pid.second_der
+                    offlineExponential = robot.pid.second_off_line
                     #PCoefficient -= 0.5
                     firstInter = False
                     print("time to get up the ramp: ",time.time() - dontDetectIntersectionTime)
@@ -287,7 +291,7 @@ def Follow_Line(testMode = False, intersectionQueue = [],intersectionSpeeds = []
                 intersectionSpeed = intersectionSpeeds.pop(0)
                 thisTime = time.time() 
                 goLeft = int(intersectionDirection == 'L')
-                while (time.time() - thisTime < 0.01):
+                while (time.time() - thisTime < robot.line_follow_turn_time):
                     ser.write([intersectionSpeed,goLeft ,intersectionSpeed, int(not goLeft)])
                 ser.write([int(intersectionSpeed/3),int(not goLeft),int(intersectionSpeed/3),goLeft])
                 time.sleep(0.05)

@@ -24,5 +24,6 @@ def changeCameraAngle(angle):
     
     return
 
-angle = int(input("Enter the desired angle: "))
-changeCameraAngle(angle)
+
+#angle = int(input("Enter the desired angle: "))
+#changeCameraAngle(angle)
