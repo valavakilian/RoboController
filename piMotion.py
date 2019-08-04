@@ -52,7 +52,7 @@ with picamera.PiCamera() as camera:
     with MotionAnalyser(camera) as output:
         cv2.namedWindow( 'PiMotionAnalysis' )
         camera.start_recording('/dev/null', 'h264', motion_output=output)
-        camera.wait_recording(60) # continue recording for 20 seconds
+        camera.wait_recording(10) # continue recording for 20 seconds
         camera.stop_recording()
         cv2.destroyWindow('PiMotionAnalysis')
         
