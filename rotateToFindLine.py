@@ -100,9 +100,7 @@ def moveToFindLine(testMode = False, moveArray, robot = loadRobot('ROBOSON.json'
     
     # Used to defer the intersections if detected too soon
     lineFollowingStartTime = time.time()
-    
-    
-    dontDetectIntersectionTime = robot.dont_detect_intersection_time
+
 
     # There are two ways to exit this main loop
     # 1) The serial connection is lost

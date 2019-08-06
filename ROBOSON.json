@@ -14,5 +14,6 @@
     "objective_complete_pin": 13,
     "backing_up_dutycycle": 90,
     "number_of_lines_required_for_inersection_mode": 3,
-    "increase_speed_time" : 3
+    "increase_speed_time" : 3,
+    "number_of_lines_require_to_find_black_line": 4,
 }
