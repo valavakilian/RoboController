@@ -5,11 +5,14 @@ import cv2
 import pickle
 
 rList = []
+xList = []
 phiList = []
+yList = []
 class MotionAnalyser(picamera.array.PiMotionAnalysis):
     def analyse(self, a):
         #return np.mean(a['x']), np.mean(a['y']))
-        
+        xList.append(a['x'])
+        yList.append(['y'])
         # Calculate the motion vector polar lengths
         r = np.sqrt(
             np.square(a['x'].astype(np.float)) +
@@ -61,8 +64,14 @@ with picamera.PiCamera() as camera:
     
         with open('phiList', 'wb') as fp:
             pickle.dump(phiList, fp)
+            
+        with open('xList', 'wb') as fp:
+            pickle.dump(xList, fp)
+            
+        with open('yList', 'wb') as fp:
+            pickle.dump(yList, fp)
 
-
+ 
         
 #followAngle(898)
     

@@ -22,6 +22,7 @@ def changeCameraAngle(angle):
         GPIO.cleanup()
         return
     
+    GPIO.cleanup()
     return
 
 

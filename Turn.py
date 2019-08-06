@@ -163,3 +163,50 @@ def goToPost(robot, speed):
         return False
     
     
+    
+
+
+def curveRotate(robot ,rotationPeriod , rotationSpeed , rotationDirection, backwards):
+    
+    serialByteArray = []
+    if backwards == 1:
+        if rotationDirection == "L":
+            serialByteArray = [rotationSpeed, 0, 0, 1]
+        elif rotationDirection == "R":
+            serialByteArray = [0, 1, rotationSpeed, 0]
+    elif backwards == 0:
+        if rotationDirection == "L":
+            serialByteArray = [rotationSpeed, 1, 0, 0]
+        elif rotationDirection == "R":
+            serialByteArray = [0, 0, rotationSpeed, 1]
+    else:
+        print("Curve Turn Error")
+
+    # Check serial port issues
+    # if the connection is not extablished, send in the angle back
+    try: 
+        ser = serial.Serial("/dev/ttyS0", 9600)
+        ser.flushInput()
+        startTime = time.time()
+        while(time.time() - startTime < rotationPeriod ):
+            ser.write(serialByteArray)
+    except serial.SerialException:
+        print ("Execption")
+        return False
+
+    GPIO.cleanup()
+    # After we are done, we will simply send the zero value to the motors
+    serialByteArray = []
+    serialByteArray.append(0)
+    serialByteArray.append(1)
+    serialByteArray.append(0)
+    serialByteArray.append(1)
+
+
+    # Check serial port issues
+    # if the connection is not extablished, send in the angle back
+    try: 
+        ser.write(serialByteArray)
+    except serial.SerialException:
+        return False
+

@@ -1,8 +1,8 @@
 {
     "line_finder": {"binary_cut" : 90, "resolution" : [40, 32], "kernel" : [[0,1,0],[0,1,0],[0,1,0]], "line_width" : 9 }, 
-    "pid": {"total" : 0.9, "pro" :4.2, "der" : 0.8, "off_line" : 1.25,"second_total" : 0.9, "second_pro": 4.2, "second_der": 0.8, "second_off_line": 1.25},
-    "speed" : {"base" : 70, "max" : 254, "min" : -200, "second_base" : 60, "second_max" : 230, "second_min" : -100, "ramp_speed" : 0},
-    "dont_detect_intersection_time" : 0, 
+    "pid": {"total" : 1, "pro" :4.6, "der" : 1.1, "off_line" : 1.7,"second_total" : 0.9, "second_pro": 4.2, "second_der": 0.8, "second_off_line": 1.25},
+    "speed" : {"base" : 100, "max" : 254, "min" : -200, "second_base" : 60, "second_max" : 230, "second_min" : -100, "ramp_speed" : 0},
+    "dont_detect_intersection_time" : 6, 
     "fork_black_line_min_width_multiplier": 1.5,
     "post_black_line_width" : 3,
     "line_follow_turn_time" : 0.1,
@@ -16,3 +16,4 @@
     "number_of_lines_required_for_inersection_mode": 3,
     "increase_speed_time" : 3
 }
+

@@ -227,7 +227,7 @@ def Follow_Line(testMode = False, intersectionQueue = [], robot = loadRobot('ROB
                         # Draw circle for showing
                         # cv2.circle(frame, (lineCenterX, lineY), 2, (255,0,0), -1)
 
-                        thisLineDeltaX = rightmostEdge - width / 2
+                        thisLineDeltaX = leftmostEdge - width / 2
                         deltaXList.append(thisLineDeltaX)
 
                 # Case for when only one edge is detected
@@ -254,7 +254,7 @@ def Follow_Line(testMode = False, intersectionQueue = [], robot = loadRobot('ROB
             if (numberOfLinesDetectingIntersection >= numberOfLinesRequiredForIntersectionMode):
                 intersectionMode = True
                 intersectionDirection = intersectionQueue.pop(0)
-                thisTime = time.time()
+                #thisTime = time.time()
                 #while (time.time() - thisTime < 1):
                  #   ser.write([255,0,255,0])
                 ser.write([0,0,0,0])
@@ -328,7 +328,7 @@ def Follow_Line(testMode = False, intersectionQueue = [], robot = loadRobot('ROB
                         # Draw circle for showing
                         # cv2.circle(frame, (lineCenterX, lineY), 2, (255,0,0), -1)
 
-                        thisLineDeltaX = lineCenterX - width / 2
+                        thisLineDeltaX = leftmostEdge - width / 2
                         deltaXList.append(thisLineDeltaX)
 
                 # Case for when only one edge is detected

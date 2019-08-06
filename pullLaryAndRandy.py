@@ -18,6 +18,7 @@ Function defenition
 def Follow_Line(testMode = False, intersectionQueue = [],intersectionSpeeds = [], robot = loadRobot('ROBOSON.json')):
     
     # Adjusting Robot variables
+    IncreaseTime = False 
     firstInter = True
     baseSpeed = robot.speed.base
     maxSpeed = robot.speed.max
@@ -271,14 +272,22 @@ def Follow_Line(testMode = False, intersectionQueue = [],intersectionSpeeds = []
                 else:
                     thisLineDeltaX = offlineExponential * (abs(previousDeltaX)) * (-1 if previousDeltaX < 0 else 1)
                     deltaXList.append(thisLineDeltaX)
-                    
+            
+            if  (IncreaseTime == False and time.time() - lineFollowingStartTime > robot.increase_speed_time):
+                baseSpeed = robot.speed.ramp_speed
+                IncreaseTime = True
+            
+            
             #going into intersection mode    
             if (numberOfLinesDetectingIntersection >= numberOfLinesRequiredForIntersectionMode and time.time() - lineFollowingStartTime > dontDetectIntersectionTime):
                 if (firstInter):
-                    baseSpeed -= 50
-                    #maxSpeed -= 30
-                    #minSpeed += 30
-                    #maxSpeed -= 75
+                    baseSpeed = robot.speed.second_base
+                    maxSpeed = robot.speed.second_max
+                    minSpeed = robot.speed.second_min
+                    MultiCoefficient = robot.pid.second_total
+                    PCoefficient = robot.pid.second_pro
+                    DCoefficient = robot.pid.second_der
+                    offlineExponential = robot.pid.second_off_line
                     #PCoefficient -= 0.5
                     firstInter = False
                     print("time to get up the ramp: ",time.time() - dontDetectIntersectionTime)
@@ -388,7 +397,7 @@ def Follow_Line(testMode = False, intersectionQueue = [],intersectionSpeeds = []
                     deltaXList.append(thisLineDeltaX)
 
             if (numberOfLinesDetectingIntersection == 0 ):#and time.time() - intersectionStartTime >= 0.3):
-                print("motherfucker exiting intersection mode!")
+                print("exiting intersection mode!")
                 intersectionMode = False
 
 
@@ -416,20 +425,24 @@ def Follow_Line(testMode = False, intersectionQueue = [],intersectionSpeeds = []
 
         duty_cycle_left = baseSpeed + error_value
         duty_cycle_right = baseSpeed - error_value
-
+        #print(duty_cycle_left, duty_cycle_right)
 
         # Reassigning the duty cycle values based on the cutoffs
         # Left Wheel
         if duty_cycle_left > maxSpeed:
             duty_cycle_left = maxSpeed
+            #print("FUCK LEFT")
         elif duty_cycle_left < minSpeed:
             duty_cycle_left = minSpeed
+            #print("FUCK LEFT")
 
         # Right wheel
         if duty_cycle_right > maxSpeed:
             duty_cycle_right = maxSpeed
+            #print("FUCK RIGTH")
         elif duty_cycle_right < minSpeed:
             duty_cycle_right = minSpeed
+            #print("FUCK RIGTH")
 
         calcTime = time.time()
         #print("Calculation time: ", calcTime - forLoopTime)
@@ -447,6 +460,7 @@ def Follow_Line(testMode = False, intersectionQueue = [],intersectionSpeeds = []
             serialByteArray.append(1)
         else:
             serialByteArray.append(0)
+        
         
         #print("Byte array sent to the BluePill: ",serialByteArray)
         
