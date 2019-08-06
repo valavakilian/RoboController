@@ -36,6 +36,7 @@ def pickup_stone(robot):
 
     # Wait for the proper pin to be turned on by the bluepill
     # indicating that the stone pickup is complete
+    time.sleep(5)
     stonePickupState = GPIO.input(startStonePickupPin)
     while(stonePickupState is 1):
         print(stonePickupState)

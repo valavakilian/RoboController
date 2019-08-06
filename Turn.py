@@ -83,7 +83,7 @@ def goStr8(robot ,goTime, speed):
 
 def backUp(robot,goTime, speed):
     
-    serialByteArray = [speed, 0, speed, 0]
+    serialByteArray = [int(speed), 0, int(speed), 0]
 
     # Check serial port issues
     # if the connection is not extablished, send in the angle back
@@ -198,9 +198,9 @@ def curveRotate(robot ,rotationPeriod , rotationSpeed , rotationDirection, backw
     # After we are done, we will simply send the zero value to the motors
     serialByteArray = []
     serialByteArray.append(0)
-    serialByteArray.append(1)
     serialByteArray.append(0)
-    serialByteArray.append(1)
+    serialByteArray.append(0)
+    serialByteArray.append(0)
 
 
     # Check serial port issues

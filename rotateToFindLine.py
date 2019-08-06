@@ -15,25 +15,14 @@ import statistics
 """
 Function defenition
 """
-def Follow_Line(testMode = False, intersectionQueue = [],intersectionSpeeds = [], intersectionTimes = [], intersectionPeriods = [], robot = loadRobot('ROBOSON.json')):
+def moveToFindLine(testMode = False, moveArray, robot = loadRobot('ROBOSON.json')):
     
     # Adjusting Robot variables
-    IncreaseTime = False 
-    firstInter = True
-    baseSpeed = robot.speed.base
-    maxSpeed = robot.speed.max
-    minSpeed = robot.speed.min
     numberOfLinesRequiredForIntersectionMode = robot.number_of_lines_required_for_inersection_mode
 
 
     # Value used for the binary filter
     BIN_CUT = robot.line_finder.binary_cut
-
-    # Loading PID values
-    MultiCoefficient = robot.pid.total
-    PCoefficient = robot.pid.pro
-    DCoefficient = robot.pid.der
-    offlineExponential = robot.pid.off_line
 
 
     camera = PiCamera()
@@ -105,24 +94,15 @@ def Follow_Line(testMode = False, intersectionQueue = [],intersectionSpeeds = []
     frameStartTime = time.time()
 
 
-    # Intersection mode determins the process of the line following
-    intersectionMode = False
-    # This value changes based on the last element in the intersection queue
-    intersectionDirection = None
     # Number of lines detectecing a intersection where the left adn right 
     # spikes are more than a single line
-    numberOfLinesDetectingIntersection = 0
+    numberOfLinesDetectingBlackLine = 0
     
     # Used to defer the intersections if detected too soon
     lineFollowingStartTime = time.time()
     
     
     dontDetectIntersectionTime = robot.dont_detect_intersection_time
-    
-    
-
-    lastIntersectionDetectionPeriod = intersectionPeriods.pop(0)
-    lastIntersectionDetectedTime = time.time()
 
     # There are two ways to exit this main loop
     # 1) The serial connection is lost
@@ -284,10 +264,7 @@ def Follow_Line(testMode = False, intersectionQueue = [],intersectionSpeeds = []
             
             
             #going into intersection mode    
-            if (numberOfLinesDetectingIntersection >= numberOfLinesRequiredForIntersectionMode and
-                time.time() - lineFollowingStartTime > dontDetectIntersectionTime and
-                time.time() - lastIntersectionDetectedTime > lastIntersectionDetectionPeriod):
-                
+            if (numberOfLinesDetectingIntersection >= numberOfLinesRequiredForIntersectionMode and time.time() - lineFollowingStartTime > dontDetectIntersectionTime):
                 if (firstInter):
                     baseSpeed = robot.speed.second_base
                     maxSpeed = robot.speed.second_max
@@ -299,25 +276,74 @@ def Follow_Line(testMode = False, intersectionQueue = [],intersectionSpeeds = []
                     #PCoefficient -= 0.5
                     firstInter = False
                     print("time to get up the ramp: ",time.time() - dontDetectIntersectionTime)
-                    
-                
-                #intersectionMode = True
+                intersectionMode = True
                 intersectionDirection = intersectionQueue.pop(0)
                 intersectionSpeed = intersectionSpeeds.pop(0)
-                intersectionTime = intersectionTimes.pop(0)
-                lastIntersectionDetectionPeriod = intersectionPeriods.pop(0)
-                thisTime = time.time() 
+                intersectionStartTime = time.time() 
                 goLeft = int(intersectionDirection == 'L')
-                while (time.time() - thisTime < intersectionTime):
-                    ser.write([intersectionSpeed,goLeft ,intersectionSpeed, int(not goLeft)])
-                ser.write([int(intersectionSpeed/3),int(not goLeft),int(intersectionSpeed/3),goLeft])
-                time.sleep(0.05)
-                ser.write([0,0,0,0])    
+                      
                 print("intersection mode timestamp", time.time())
-                print("this intersection period was ", time.time() - lastIntersectionDetectedTime)
-                print("__________")
-                lastIntersectionDetectedTime = time.time()
-                
+                time.sleep(0.05)
+            
+                    # Takingn the median of the delta Xs
+            currentDeltaX  = statistics.median(deltaXList)
+            #print("Delta X measured: ", currentDeltaX)
+
+            forLoopTime = time.time()
+            #print("for loop time: ", forLoopTime - binTime)
+
+
+            #
+            # PID calculations
+            #
+
+            # Finding the derivative time 
+            # The time it took from taking the last frame 
+            derivativeDeltaTime = frameTakingTime + (forLoopTime - algorithmStartTime)
+
+            # finding the derivative
+            dXdT = (currentDeltaX - previousDeltaX) / derivativeDeltaTime
+
+            # Finding the error value given the constants
+            error_value = int(MultiCoefficient * (DCoefficient * dXdT + PCoefficient * currentDeltaX))
+
+            duty_cycle_left = baseSpeed + error_value
+            duty_cycle_right = baseSpeed - error_value
+            #print(duty_cycle_left, duty_cycle_right)
+
+            # Reassigning the duty cycle values based on the cutoffs
+            # Left Wheel
+            if duty_cycle_left > maxSpeed:
+                duty_cycle_left = maxSpeed
+                #print("FUCK LEFT")
+            elif duty_cycle_left < minSpeed:
+                duty_cycle_left = minSpeed
+                #print("FUCK LEFT")
+
+            # Right wheel
+            if duty_cycle_right > maxSpeed:
+                duty_cycle_right = maxSpeed
+                #print("FUCK RIGTH")
+            elif duty_cycle_right < minSpeed:
+                duty_cycle_right = minSpeed
+                #print("FUCK RIGTH")
+
+            calcTime = time.time()
+            #print("Calculation time: ", calcTime - forLoopTime)
+
+
+            # Serial communication to the BluePill
+            serialByteArray.append(abs(duty_cycle_left))
+            if(duty_cycle_left > 0):
+                serialByteArray.append(1)
+            else:
+                serialByteArray.append(0)
+            
+            serialByteArray.append(abs(duty_cycle_right))
+            if(duty_cycle_right > 0):
+                serialByteArray.append(1)
+            else:
+                serialByteArray.append(0)
 
 
         if intersectionMode:
@@ -362,121 +388,28 @@ def Follow_Line(testMode = False, intersectionQueue = [],intersectionSpeeds = []
                     rightmostEdge = edgeIndices[-1]
 
                     lineWidthDetected = rightmostEdge - leftmostEdge
-                    #print("Line width detected: ",lineWidthDetected) 
-
+                    #print("Line width detected: ",lineWidthDetected)
+                    
                     # Checking to see if a for is detected 
                     if (lineWidthDetected >= fork_min_width):
 
                         numberOfLinesDetectingIntersection += 1
-
-                        if(intersectionDirection == "L"):
-                            thisLineDeltaX = rightmostEdge - width / 2
-                        elif(intersectionDirection == "R"):
-                            thisLineDeltaX = leftmostEdge - width / 2
-                        elif(intersectionDirection == "X"):
-                            return intersectionQueue
-
-                        deltaXList.append(thisLineDeltaX)
-
-                    else:
-                        # Finding the denter of the line
-                        lineCenterX = int((leftmostEdge + rightmostEdge) / 2)
-
-                        # Draw circle for showing
-                        # cv2.circle(frame, (lineCenterX, lineY), 2, (255,0,0), -1)
-
-                        thisLineDeltaX = lineCenterX - width / 2
-                        deltaXList.append(thisLineDeltaX)
-
-                # Case for when only one edge is detected
-                elif(len(edgeIndices) == 1):
-                    
-                    if dline[0] == 0:
-                        onlyEdge = edgeIndices[-1]
-                    if dline[-1] == 0:
-                        onlyEdge = edgeIndices[0]
-
-
-                    # Cases for when the edge is to the left or the right
-                    if( onlyEdge >= width / 2):
-                        lineCenterX = onlyEdge + black_line_width / 2
-                    if( onlyEdge < width / 2):
-                        lineCenterX = onlyEdge - black_line_width / 2
-                    thisLineDeltaX = lineCenterX - width / 2
-                    deltaXList.append(thisLineDeltaX)
-
-                # Case for when we are offline 
-                # We will exponentially increase the delta values to return the line
-                else:
-                    thisLineDeltaX = offlineExponential * (abs(previousDeltaX)) * (-1 if previousDeltaX < 0 else 1)
-                    deltaXList.append(thisLineDeltaX)
+                        
+            
+            serialByteArray = [intersectionSpeed,goLeft ,intersectionSpeed, int(not goLeft)]
+            
 
             if (numberOfLinesDetectingIntersection == 0 ):#and time.time() - intersectionStartTime >= 0.3):
-                print("exiting intersection mode!")
+                print("exiting intersection mode at ", time.time())
+                print("This intersection took ", time.time() - intersectionStartTime)
+                print("_______________________________________")
                 intersectionMode = False
-
-
-        # Takingn the median of the delta Xs
-        currentDeltaX  = statistics.median(deltaXList)
-        #print("Delta X measured: ", currentDeltaX)
-
-        forLoopTime = time.time()
-        #print("for loop time: ", forLoopTime - binTime)
-
-
-        #
-        # PID calculations
-        #
-
-        # Finding the derivative time 
-        # The time it took from taking the last frame 
-        derivativeDeltaTime = frameTakingTime + (forLoopTime - algorithmStartTime)
-
-        # finding the derivative
-        dXdT = (currentDeltaX - previousDeltaX) / derivativeDeltaTime
-
-        # Finding the error value given the constants
-        error_value = int(MultiCoefficient * (DCoefficient * dXdT + PCoefficient * currentDeltaX))
-
-        duty_cycle_left = baseSpeed + error_value
-        duty_cycle_right = baseSpeed - error_value
-        #print(duty_cycle_left, duty_cycle_right)
-
-        # Reassigning the duty cycle values based on the cutoffs
-        # Left Wheel
-        if duty_cycle_left > maxSpeed:
-            duty_cycle_left = maxSpeed
-            #print("FUCK LEFT")
-        elif duty_cycle_left < minSpeed:
-            duty_cycle_left = minSpeed
-            #print("FUCK LEFT")
-
-        # Right wheel
-        if duty_cycle_right > maxSpeed:
-            duty_cycle_right = maxSpeed
-            #print("FUCK RIGTH")
-        elif duty_cycle_right < minSpeed:
-            duty_cycle_right = minSpeed
-            #print("FUCK RIGTH")
-
-        calcTime = time.time()
-        #print("Calculation time: ", calcTime - forLoopTime)
-
-
-        # Serial communication to the BluePill
-        serialByteArray.append(abs(duty_cycle_left))
-        if(duty_cycle_left > 0):
-            serialByteArray.append(1)
-        else:
-            serialByteArray.append(0)
-        
-        serialByteArray.append(abs(duty_cycle_right))
-        if(duty_cycle_right > 0):
-            serialByteArray.append(1)
-        else:
-            serialByteArray.append(0)
-        
-        
+                try:
+                    ser.write([0,0,0,0])
+                    serialByteArray = []
+                except serial.SerialException: 
+                    return intersectionQueue
+   
         #print("Byte array sent to the BluePill: ",serialByteArray)
         
         # This try cathc block will return the unfinished
@@ -522,3 +455,5 @@ if __name__ == '__main__':
     robot = loadRobot('ROBOSON.json')
     val = Follow_Line(True, ["L","L","R","X"], [80, 50, 10, 80, 0],robot)
     print(val)
+
+
