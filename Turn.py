@@ -210,3 +210,38 @@ def curveRotate(robot ,rotationPeriod , rotationSpeed , rotationDirection, backw
     except serial.SerialException:
         return False
 
+
+def ShakeUrHips(robot, wiggleTime, wiggleSpeed):
+    direction = True
+    # Check serial port issues
+    # if the connection is not extablished, send in the angle back
+    # help! im trapped in this code! i cant get out :(
+    try: 
+        ser = serial.Serial("/dev/ttyS0", 9600)
+        ser.flushInput()
+        startTime = time.time()
+        while(time.time() - startTime < wiggleTime):
+            ser.write([wiggleSpeed ,direction, wiggleSpeed, direction])
+            time.sleep(robot.wiggle_sleep_time)
+            direction = not direction
+    except serial.SerialException:
+        print ("Execption")
+        return False
+
+    GPIO.cleanup()
+    # After we are done, we will simply send the zero value to the motors
+    serialByteArray = []
+    serialByteArray.append(0)
+    serialByteArray.append(0)
+    serialByteArray.append(0)
+    serialByteArray.append(0)
+
+
+    # Check serial port issues
+    # if the connection is not extablished, send in the angle back
+    try: 
+        ser.write(serialByteArray)
+    except serial.SerialException:
+        return False
+
+
