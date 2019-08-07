@@ -15,7 +15,7 @@ import statistics
 """
 Function defenition
 """
-def Follow_Line(testMode = False, intersectionQueue = [],intersectionSpeeds = [], robot = loadRobot('ROBOSON.json')):
+def Follow_Line(testMode = False, intersectionQueue = [],intersectionSpeeds = [], robot = loadRobot('ROBOSON.json'), impulseSpeeds = [], impulseTimes = []):
     
     # Adjusting Robot variables
     IncreaseTime = False 
@@ -296,7 +296,15 @@ def Follow_Line(testMode = False, intersectionQueue = [],intersectionSpeeds = []
                 intersectionSpeed = intersectionSpeeds.pop(0)
                 intersectionStartTime = time.time() 
                 goLeft = int(intersectionDirection == 'L')
-                      
+                
+                #give a short impulse to get the robot to start turning in the right direction
+                startImpulseTime = time.time()
+                impulseTime = impulseTimes.pop(0)
+                impulseSpeeds = impulseSpeeds.pop(0)
+                while(time.time() - startImpulseTime < impulseTime)
+                    ser.write(impulseSpeeds, goLeft, impulseSpeeds, int(not goLeft))
+
+
                 print("intersection mode timestamp", time.time())
                 time.sleep(0.05)
             
@@ -405,7 +413,7 @@ def Follow_Line(testMode = False, intersectionQueue = [],intersectionSpeeds = []
                     lineWidthDetected = rightmostEdge - leftmostEdge
                     #print("Line width detected: ",lineWidthDetected)
                     
-                    # Checking to see if a for is detected 
+                    # Checking to see if a fork is detected 
                     if (lineWidthDetected >= fork_min_width):
 
                         numberOfLinesDetectingIntersection += 1
