@@ -8,13 +8,17 @@ import sys
 
 robot = loadRobot('ROBOSON.json')
 
+if (len(sys.argv) == 1):
+    print("Specify side")
+    quit()
+
 if (sys.argv[1] == '-l'):
     changeCameraAngle(70)
-    #val = Follow_Line(True, ["L","L","R", "R", "X"], [70, 70, 0, 0,0], [0.3,0.2,0.01,0.01,0.01], [0, 0.5,0.8, 1.1, 0], robot)
+    val = Follow_Line(True, ["L","L","R", "R", "X"], [70, 60, 0, 0,0], [0.3,0.2,0.01,0.01,0.01], [0, 0.5,0.8, 1.1, 0], robot)
     #print(val)
     #changeCameraAngle(0)
-    #backUp(robot, 0.3, 70)
-    #Rotate(robot ,1, 60,"L")
+    backUp(robot, 0.3, 70)
+    Rotate(robot ,1, 60,"L")
     goToPost(robot, 150)
     pickup_stone(robot)
     print("Quitting first function")
