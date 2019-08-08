@@ -142,12 +142,14 @@ def goToPost(robot, speed):
         while(poleContactPinState is 0):
             ser.write(serialByteArray)
             poleContactPinState = GPIO.input(poleContactPin)
+            
     except serial.SerialException:
         print ("Execption")
         return False
     
     GPIO.cleanup()
-    # After we are done, we will simply send the zero value to the motors
+    
+    """# After we are done, we will simply send the zero value to the motors
     serialByteArray = []
     serialByteArray.append(0)
     serialByteArray.append(1)
@@ -160,7 +162,7 @@ def goToPost(robot, speed):
     try: 
         ser.write(serialByteArray)
     except serial.SerialException:
-        return False
+        return False"""
     
     
     
@@ -211,37 +213,17 @@ def curveRotate(robot ,rotationPeriod , rotationSpeed , rotationDirection, backw
         return False
 
 
-def ShakeUrHips(robot, wiggleTime, wiggleSpeed):
-    direction = True
+def customMove(robot, arr, rotationPeriod):
+    serialByteArray = arr
+
     # Check serial port issues
     # if the connection is not extablished, send in the angle back
-    # help! im trapped in this code! i cant get out :(
     try: 
         ser = serial.Serial("/dev/ttyS0", 9600)
         ser.flushInput()
         startTime = time.time()
-        while(time.time() - startTime < wiggleTime):
-            ser.write([wiggleSpeed ,direction, wiggleSpeed, direction])
-            time.sleep(robot.wiggle_sleep_time)
-            direction = not direction
+        while(time.time() - startTime < rotationPeriod ):
+            ser.write(serialByteArray)
     except serial.SerialException:
         print ("Execption")
         return False
-
-    GPIO.cleanup()
-    # After we are done, we will simply send the zero value to the motors
-    serialByteArray = []
-    serialByteArray.append(0)
-    serialByteArray.append(0)
-    serialByteArray.append(0)
-    serialByteArray.append(0)
-
-
-    # Check serial port issues
-    # if the connection is not extablished, send in the angle back
-    try: 
-        ser.write(serialByteArray)
-    except serial.SerialException:
-        return False
-
-

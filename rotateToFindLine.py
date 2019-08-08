@@ -15,7 +15,7 @@ import statistics
 """
 Function defenition
 """
-def moveToFindLine(testMode = False, moveArray, movetime , robot = loadRobot('ROBOSON.json')):
+def moveToFindLine(camera ,testMode, moveArray, movetime , robot = loadRobot('ROBOSON.json')):
     
 
     serialByteArray = moveArray
@@ -27,13 +27,13 @@ def moveToFindLine(testMode = False, moveArray, movetime , robot = loadRobot('RO
     # Value used for the binary filter
     BIN_CUT = robot.line_finder.binary_cut
 
-    blackLineWidth = robot.line_width
+    blackLineWidth = robot.line_finder.line_width
 
 
-    camera = PiCamera()
-    camera.color_effects = (128, 128)
+    #camera = PiCamera()
+    #camera.color_effects = (128, 128)
     cameraResolution = robot.line_finder.resolution
-    camera.resolution = (cameraResolution[0], cameraResolution[1])
+    #camera.resolution = (cameraResolution[0], cameraResolution[1])
     rawCapture = PiRGBArray(camera, size = (cameraResolution[0], cameraResolution[1]))
 
 
@@ -43,9 +43,14 @@ def moveToFindLine(testMode = False, moveArray, movetime , robot = loadRobot('RO
     try: 
         ser = serial.Serial("/dev/ttyS0", 9600)
         ser.flushInput()
-        serialByteArray = []
-    except serial.SerialException: 
+    except serial.SerialException:
+        rawCapture.truncate(0)
+        camera.close()
         return intersectionQueue
+    
+    
+    
+    exitCode = False
 
     # Changinig the mode to showing the frames or not 
     if testMode:
@@ -201,7 +206,8 @@ def moveToFindLine(testMode = False, moveArray, movetime , robot = loadRobot('RO
                 #print(len(edgeIndices))
                 #print("_______________________________________________")
 
-                if (lineWidthDetected >= blackLineWidth):
+
+                if (lineWidthDetected >= blackLineWidth * robot.black_line_find_width_ratio):
 
                     numberOfLinesDetectingBlackLine += 1
         
@@ -211,25 +217,27 @@ def moveToFindLine(testMode = False, moveArray, movetime , robot = loadRobot('RO
         #print("for loop time: ", forLoopTime - binTime)
 
         
-        if (numberOfLinesDetectingIntersection >= numberOfLinesRequiredForIntersectionMode):
+        if (numberOfLinesDetectingBlackLine >= numberOfLinesRequiredForIntersectionMode):
             try:
                 ser.write([0,0,0,0])
-                return True
+                exitCode = True
             except serial.SerialException: 
                 print("Serial Exception")
-                return time.time() - movementStartTime
+                exitCode = True
         elif (time.time() - movementStartTime >= movetime):
             try:
                 ser.write([0,0,0,0])
+                exitCode = True
             except serial.SerialException: 
                 print("Serial Exception")
-                return time.time() - movementStartTime
+                exitCode = True
         else:
             try:
                 ser.write(serialByteArray)
             except serial.SerialException: 
                 print("Serial Exception")
-                return time.time() - movementStartTime
+                exitCode = True
+ 
         
         #print("Byte array sent to the BluePill: ",serialByteArray)
         
@@ -262,6 +270,13 @@ def moveToFindLine(testMode = False, moveArray, movetime , robot = loadRobot('RO
 
         # End of this frame 
         frameEndTime = time.time()
+        
+        if (exitCode):
+            rawCapture.truncate(0)
+            return camera
+    
+    rawCapture.truncate(0)
+    camera.close()
 
 
 

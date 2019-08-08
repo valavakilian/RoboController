@@ -15,7 +15,7 @@ import statistics
 """
 Function defenition
 """
-def Follow_Line(testMode = False, intersectionQueue = [],intersectionSpeeds = [], intersectionTimes = [], intersectionPeriods = [], robot = loadRobot('ROBOSON.json')):
+def Follow_Line(camera ,testMode = False, intersectionQueue = [],intersectionSpeeds = [], intersectionTimes = [], intersectionPeriods = [], robot = loadRobot('ROBOSON.json')):
     
     # Adjusting Robot variables
     IncreaseTime = False 
@@ -36,10 +36,10 @@ def Follow_Line(testMode = False, intersectionQueue = [],intersectionSpeeds = []
     offlineExponential = robot.pid.off_line
 
 
-    camera = PiCamera()
-    camera.color_effects = (128, 128)
+    #camera = PiCamera()
+    #camera.color_effects = (128, 128)
     cameraResolution = robot.line_finder.resolution
-    camera.resolution = (cameraResolution[0], cameraResolution[1])
+    #camera.resolution = (cameraResolution[0], cameraResolution[1])
     rawCapture = PiRGBArray(camera, size = (cameraResolution[0], cameraResolution[1]))
 
 
@@ -50,7 +50,8 @@ def Follow_Line(testMode = False, intersectionQueue = [],intersectionSpeeds = []
         ser = serial.Serial("/dev/ttyS0", 9600)
         ser.flushInput()
         serialByteArray = []
-    except serial.SerialException: 
+    except serial.SerialException:
+        rawCapture.truncate(0)
         return intersectionQueue
 
     # Changinig the mode to showing the frames or not 
@@ -230,6 +231,7 @@ def Follow_Line(testMode = False, intersectionQueue = [],intersectionSpeeds = []
                         elif(intersectionDirection == "R"):
                             thisLineDeltaX = leftmostEdge - width / 2
                         elif(intersectionDirection == "X"):
+                            rawCapture.truncate(0)
                             return intersectionQueue
 
                         deltaXList.append(thisLineDeltaX)
@@ -243,6 +245,7 @@ def Follow_Line(testMode = False, intersectionQueue = [],intersectionSpeeds = []
                         elif(intersectionDirection == "R"):
                             thisLineDeltaX = leftmostEdge - width / 2
                         elif(intersectionDirection == "X"):
+                            rawCapture.truncate(0)
                             return intersectionQueue
 
                         deltaXList.append(thisLineDeltaX)
@@ -374,6 +377,7 @@ def Follow_Line(testMode = False, intersectionQueue = [],intersectionSpeeds = []
                         elif(intersectionDirection == "R"):
                             thisLineDeltaX = leftmostEdge - width / 2
                         elif(intersectionDirection == "X"):
+                            rawCapture.truncate(0)
                             return intersectionQueue
 
                         deltaXList.append(thisLineDeltaX)
@@ -484,7 +488,8 @@ def Follow_Line(testMode = False, intersectionQueue = [],intersectionSpeeds = []
         try:
             ser.write(serialByteArray)
             serialByteArray = []
-        except serial.SerialException: 
+        except serial.SerialException:
+            rawCapture.truncate(0)
             return intersectionQueue
         
        
@@ -513,7 +518,8 @@ def Follow_Line(testMode = False, intersectionQueue = [],intersectionSpeeds = []
         # End of this frame 
         frameEndTime = time.time()
 
-
+    
+    camera.close()
 
 
 # Loading Robot as an object
