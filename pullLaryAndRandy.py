@@ -231,6 +231,7 @@ def Follow_Line(camera ,testMode = False, intersectionQueue = [],intersectionSpe
                         elif(intersectionDirection == "R"):
                             thisLineDeltaX = leftmostEdge - width / 2
                         elif(intersectionDirection == "X"):
+                            ser.write([0,0,0,0])
                             rawCapture.truncate(0)
                             return intersectionQueue
 
@@ -245,6 +246,7 @@ def Follow_Line(camera ,testMode = False, intersectionQueue = [],intersectionSpe
                         elif(intersectionDirection == "R"):
                             thisLineDeltaX = leftmostEdge - width / 2
                         elif(intersectionDirection == "X"):
+                            ser.write([0,0,0,0])
                             rawCapture.truncate(0)
                             return intersectionQueue
 
@@ -281,9 +283,15 @@ def Follow_Line(camera ,testMode = False, intersectionQueue = [],intersectionSpe
                     thisLineDeltaX = offlineExponential * (abs(previousDeltaX)) * (-1 if previousDeltaX < 0 else 1)
                     deltaXList.append(thisLineDeltaX)
             
-            if  (IncreaseTime == False and time.time() - lineFollowingStartTime > robot.increase_speed_time):
+            if  (IncreaseTime == False and time.time() - lineFollowingStartTime > robot.increase_speed_time
+                 and time.time() - lineFollowingStartTime < robot.decrease_speed_time):
                 baseSpeed = robot.speed.ramp_speed
+                print("FUCK FUCK FUCK FUCK")
                 IncreaseTime = True
+            '''elif  (IncreaseTime == True and time.time() - lineFollowingStartTime > robot.decrease_speed_time):
+                baseSpeed = robot.speed.ramp_second_speed
+                print("FUCK FUCK FUCK FUCK")
+                IncreaseTime = False'''
             
             
             #going into intersection mode    
@@ -377,6 +385,7 @@ def Follow_Line(camera ,testMode = False, intersectionQueue = [],intersectionSpe
                         elif(intersectionDirection == "R"):
                             thisLineDeltaX = leftmostEdge - width / 2
                         elif(intersectionDirection == "X"):
+                            ser.write([0,0,0,0])
                             rawCapture.truncate(0)
                             return intersectionQueue
 

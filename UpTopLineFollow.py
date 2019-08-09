@@ -15,7 +15,8 @@ import statistics
 """
 Function defenition
 """
-def Follow_Line_Up_Top(camera ,testMode = False, intersectionQueue = [],intersectionSpeeds = [], intersectionTimes = [], intersectionPeriods = [], robot = loadRobot('ROBOSON.json')):
+def Follow_Line_Up_Top(camera, timeout , testMode = False, intersectionQueue = [],intersectionSpeeds = [],
+                       intersectionTimes = [], intersectionPeriods = [], robot = loadRobot('ROBOSON.json')):
     
     # Adjusting Robot variables
     """IncreaseTime = False 
@@ -120,6 +121,8 @@ def Follow_Line_Up_Top(camera ,testMode = False, intersectionQueue = [],intersec
 
     lastIntersectionDetectionPeriod = intersectionPeriods.pop(0)
     lastIntersectionDetectedTime = time.time()
+    
+    startFollowTopLine= time.time()
 
     # There are two ways to exit this main loop
     # 1) The serial connection is lost
@@ -128,6 +131,14 @@ def Follow_Line_Up_Top(camera ,testMode = False, intersectionQueue = [],intersec
     # Main for loop starting 
     # Frame is taken as a 3 channgel grayscaled image
     for frame in camera.capture_continuous(rawCapture, format = "bgr", use_video_port = True):
+        
+        
+        if time.time() - startFollowTopLine > timeout :
+            serialByteArray = [0, 0, 0, 0]
+            ser.write(serialByteArray)
+            rawCapture.truncate(0)
+            return intersectionQueue
+            
 
         # Algorithm start time
         algorithmStartTime = time.time()
@@ -227,6 +238,10 @@ def Follow_Line_Up_Top(camera ,testMode = False, intersectionQueue = [],intersec
                         elif(intersectionDirection == "R"):
                             thisLineDeltaX = leftmostEdge - width / 2
                         elif(intersectionDirection == "X"):
+                            
+                            serialByteArray = [100, 0, 100, 0]
+                            ser.write(serialByteArray)
+            
                             rawCapture.truncate(0)
                             return intersectionQueue
 
@@ -241,6 +256,8 @@ def Follow_Line_Up_Top(camera ,testMode = False, intersectionQueue = [],intersec
                         elif(intersectionDirection == "R"):
                             thisLineDeltaX = leftmostEdge - width / 2
                         elif(intersectionDirection == "X"):
+                            serialByteArray = [100, 0, 100, 0]
+                            ser.write(serialByteArray)
                             rawCapture.truncate(0)
                             return intersectionQueue
 
@@ -357,6 +374,8 @@ def Follow_Line_Up_Top(camera ,testMode = False, intersectionQueue = [],intersec
                         elif(intersectionDirection == "R"):
                             thisLineDeltaX = leftmostEdge - width / 2
                         elif(intersectionDirection == "X"):
+                            serialByteArray = [100, 0, 100, 0]
+                            ser.write(serialByteArray)
                             rawCapture.truncate(0)
                             return intersectionQueue
 

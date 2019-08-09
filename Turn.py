@@ -227,3 +227,5 @@ def customMove(robot, arr, rotationPeriod):
     except serial.SerialException:
         print ("Execption")
         return False
+    
+#def ShakeUrHips(robot, , 4)

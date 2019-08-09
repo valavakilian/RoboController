@@ -273,9 +273,18 @@ def Follow_Line(testMode = False, intersectionQueue = [],intersectionSpeeds = []
                     thisLineDeltaX = offlineExponential * (abs(previousDeltaX)) * (-1 if previousDeltaX < 0 else 1)
                     deltaXList.append(thisLineDeltaX)
             
-            if  (IncreaseTime == False and time.time() - lineFollowingStartTime > robot.increase_speed_time):
+            if  (IncreaseTime == False and time.time() - lineFollowingStartTime > robot.increase_speed_time and
+                 time.time() - lineFollowingStartTime < robot.decrease_speed_time):
                 baseSpeed = robot.speed.ramp_speed
+                minSpeed = robot.speed.ramp_min_speed
+                print("BOOSTING UP")
                 IncreaseTime = True
+            elif  (IncreaseTime == True and time.time() - lineFollowingStartTime > robot.decrease_speed_time):
+                baseSpeed = robot.speed.second_base
+                maxSpeed = robot.speed.second_max
+                minSpeed = robot.speed.second_min
+                print("BOOSTING DOWN")
+                IncreaseTime = False
             
             
             #going into intersection mode    
