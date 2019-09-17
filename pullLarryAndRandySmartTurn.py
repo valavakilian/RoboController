@@ -347,18 +347,14 @@ def Follow_Line(testMode = False, intersectionQueue = [],intersectionSpeeds = []
             # Left Wheel
             if duty_cycle_left > maxSpeed:
                 duty_cycle_left = maxSpeed
-                #print("FUCK LEFT")
             elif duty_cycle_left < minSpeed:
                 duty_cycle_left = minSpeed
-                #print("FUCK LEFT")
 
             # Right wheel
             if duty_cycle_right > maxSpeed:
                 duty_cycle_right = maxSpeed
-                #print("FUCK RIGTH")
             elif duty_cycle_right < minSpeed:
                 duty_cycle_right = minSpeed
-                #print("FUCK RIGTH")
 
             calcTime = time.time()
             #print("Calculation time: ", calcTime - forLoopTime)

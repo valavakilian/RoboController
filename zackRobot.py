@@ -15,6 +15,11 @@ import argparse
 import imutils
 import time
 
+'''
+This function is created as a test to see if we can control the robot like a remote control car
+All for fun
+'''
+
 ser = serial.Serial("/dev/ttyUSB0", 9600)
 ser.flushInput()
 

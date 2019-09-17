@@ -286,11 +286,11 @@ def Follow_Line(camera ,testMode = False, intersectionQueue = [],intersectionSpe
             if  (IncreaseTime == False and time.time() - lineFollowingStartTime > robot.increase_speed_time
                  and time.time() - lineFollowingStartTime < robot.decrease_speed_time):
                 baseSpeed = robot.speed.ramp_speed
-                print("FUCK FUCK FUCK FUCK")
+
                 IncreaseTime = True
             '''elif  (IncreaseTime == True and time.time() - lineFollowingStartTime > robot.decrease_speed_time):
                 baseSpeed = robot.speed.ramp_second_speed
-                print("FUCK FUCK FUCK FUCK")
+
                 IncreaseTime = False'''
             
             
@@ -459,18 +459,15 @@ def Follow_Line(camera ,testMode = False, intersectionQueue = [],intersectionSpe
         # Left Wheel
         if duty_cycle_left > maxSpeed:
             duty_cycle_left = maxSpeed
-            #print("FUCK LEFT")
         elif duty_cycle_left < minSpeed:
             duty_cycle_left = minSpeed
-            #print("FUCK LEFT")
+
 
         # Right wheel
         if duty_cycle_right > maxSpeed:
             duty_cycle_right = maxSpeed
-            #print("FUCK RIGTH")
         elif duty_cycle_right < minSpeed:
             duty_cycle_right = minSpeed
-            #print("FUCK RIGTH")
 
         calcTime = time.time()
         #print("Calculation time: ", calcTime - forLoopTime)

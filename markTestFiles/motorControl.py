@@ -1,5 +1,11 @@
 import time
 import GPIO
+
+'''
+Another function made for testing the motor control
+'''
+
+
 MOTOR1PWM1PIN = 18
 MOTOR1PWM2PIN = 12
 GPIO.setmode(GPIO.BOARD)

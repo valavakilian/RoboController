@@ -355,7 +355,6 @@ def Follow_Line(testMode = False, intersectionQueue = [], robot = loadRobot('ROB
                     deltaXList.append(thisLineDeltaX)
 
             if (numberOfLinesDetectingIntersection == 0 and time.time() - intersectionStartTime >= 1):
-                print("motherfucker exiting intersection mode!")
                 intersectionMode = False
 
 

@@ -4,6 +4,14 @@ from dispenseStone import dispense_stone
 from RoboLoader import loadRobot
 
 robot = loadRobot('ROBOSON.json')
+
+
+"""
+Another robot controller function for remote control.
+We were thinking of hard coding the values. 
+Again this is mostly for fun and testing.
+"""
+
  
 def getch():
     fd = sys.stdin.fileno()

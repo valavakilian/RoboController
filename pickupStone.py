@@ -7,7 +7,13 @@ import time
 from RoboLoader import loadRobot
 import RPi.GPIO as GPIO
 
-
+"""
+Function used for picking up the stone. Technically this function
+sends a pin value to high which triggers the stm32 to enable to 
+stone pickup sequence. 
+Takes the robot dictionary as its input
+Warning: function has a time delay, waits for the process to be complete.
+"""
 def pickup_stone(robot):
 
     # Loading Robot as an object
@@ -34,15 +40,7 @@ def pickup_stone(robot):
     GPIO.output(startStonePickupPin, GPIO.LOW)
     #GPIO.output(dispenseStonePin, GPIO.LOW)
 
-    # Wait for the proper pin to be turned on by the bluepill
-    # indicating that the stone pickup is complete
-    '''time.sleep(5)
-    stonePickupState = GPIO.input(pickupStoneCompletePin)
-    while(stonePickupState is 1):
-        print(stonePickupState)
-        #GPIO.output(dispenseStonePin, GPIO.LOW)
-        stonePickupState = GPIO.input(pickupStoneCompletePin)
-    '''
+
     # Cleaning the GPIO pins is required
     GPIO.cleanup()
 

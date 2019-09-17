@@ -4,6 +4,15 @@ import numpy as np
 import cv2
 import pickle
 
+
+"""
+A function generated as a test . This function uses the camera as a optical 
+flow sensor to keep track of the position of the robot.
+Current condition is only for testing 
+result was that testing was not accurate enough.
+"""
+
+
 rList = []
 xList = []
 phiList = []

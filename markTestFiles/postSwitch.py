@@ -8,6 +8,10 @@ from RoboLoader import loadRobot
 import RPi.GPIO as GPIO
 
 
+'''
+A function used for testing the post contact switch on the robot.
+Takes the robot object as a parameter.
+'''
 def post_switch(robot):
 
     # Loading Robot as an object
